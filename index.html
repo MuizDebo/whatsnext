@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsNext? — Discover Events Near You</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   RESET & VARIABLES
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --orange: #F5A623;
+  --orange-dark: #E8961A;
+  --orange-glow: rgba(245, 166, 35, 0.25);
+  --black: #1A1A1A;
+  --black-soft: #2C2C2C;
+  --white: #FFFFFF;
+  --off-white: #FAFAFA;
+  --gray-100: #F5F5F5;
+  --gray-200: #EEEEEE;
+  --gray-300: #E0E0E0;
+  --gray-400: #BDBDBD;
+  --gray-500: #9E9E9E;
+  --gray-600: #757575;
+  --gray-700: #616161;
+  --gray-800: #424242;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --max-width: 1320px;
+  --nav-height: 64px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--font-body); cursor: pointer; border: none; background: none; }
+img { display: block; max-width: 100%; }
+::-webkit-scrollbar { height: 0; width: 0; }
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes placeholderFade {
+  0%, 100% { opacity: 0; transform: translateY(6px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroTextReveal {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+}
+
+.animate-on-scroll { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.animate-on-scroll.visible { opacity: 1; transform: translateY(0); }
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+.nav {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  height: var(--nav-height);
+}
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.nav-logo-icon {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-logo-icon svg { width: 38px; height: 38px; }
+.nav-logo-text {
+  font-family: var(--font-display);
+  font-weight: 900; font-size: 22px;
+  letter-spacing: -0.03em;
+  color: var(--black);
+  line-height: 1;
+}
+.nav-logo-text span { color: var(--orange); }
+
+/* Search Bar */
+.nav-search {
+  flex: 1; max-width: 560px;
+  display: flex; align-items: center;
+  background: var(--gray-100);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 50px;
+  padding: 0 6px 0 16px;
+  height: 44px;
+  gap: 0;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.nav-search:focus-within {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px var(--orange-glow);
+}
+.nav-search > svg.search-icon { flex-shrink: 0; color: var(--gray-400); margin-right: 4px; }
+
+/* Input wrapper — clips the placeholder so it never overflows */
+.nav-search .input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.nav-search .input-wrap input {
+  width: 100%; height: 100%;
+  border: none; background: none; outline: none;
+  font-size: 14px; font-weight: 500; color: var(--black);
+  padding: 0 8px;
+  font-family: var(--font-body);
+}
+.nav-search .input-wrap .search-placeholder {
+  position: absolute;
+  left: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; font-weight: 500; color: var(--gray-500);
+  pointer-events: none;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.nav-search .input-wrap .search-placeholder .static-text {
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.nav-search .input-wrap .search-placeholder .rotating-text {
+  display: inline-block;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Location pill — right side of search bar */
+.nav-search .location-pill {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  border-radius: 50px;
+  padding: 5px 12px 5px 8px;
+  font-size: 13px; font-weight: 600;
+  color: var(--black);
+  flex-shrink: 0;
+  margin: 0 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.nav-search .location-pill:hover { background: var(--gray-100); }
+.nav-search .location-pill svg { color: var(--orange); flex-shrink: 0; }
+.nav-search .search-btn {
+  width: 34px; height: 34px; min-width: 34px; border-radius: 50%;
+  background: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px var(--orange-glow);
+}
+.nav-search .search-btn:hover { background: var(--orange-dark); transform: scale(1.05); }
+.nav-search .search-btn svg { color: var(--white); }
+
+/* Nav Actions */
+.nav-actions {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.nav-actions .icon-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-700);
+  transition: background 0.2s, color 0.2s;
+}
+.nav-actions .icon-btn:hover { background: var(--gray-100); color: var(--black); }
+.nav-submit {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  background: var(--orange);
+  color: var(--white);
+  font-weight: 700; font-size: 14px;
+  border-radius: 50px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px var(--orange-glow);
+  letter-spacing: -0.01em;
+}
+.nav-submit:hover { background: var(--orange-dark); transform: translateY(-1px); box-shadow: 0 4px 20px var(--orange-glow); }
+.nav-submit svg { flex-shrink: 0; }
+
+/* ============================================
+   HERO SECTION — Fever-style partial viewport
+   ============================================ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+}
+.hero-image {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(26,26,26,0.75) 0%,
+    rgba(26,26,26,0.45) 45%,
+    rgba(26,26,26,0.1) 75%,
+    transparent 100%
+  );
+}
+.hero-content {
+  position: absolute;
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto; right: 0;
+  padding: 0 32px;
+  z-index: 2;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 64px; font-weight: 900;
+  color: var(--white);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  max-width: 480px;
+  animation: heroTextReveal 0.8s ease 0.2s both;
+}
+.hero-title .question-mark { color: var(--orange); }
+.hero-subtitle {
+  font-size: 20px; font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+  max-width: 400px;
+  animation: heroTextReveal 0.8s ease 0.4s both;
+}
+
+/* ============================================
+   SECTION COMMON
+   ============================================ */
+.section {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 800;
+  color: var(--black);
+  letter-spacing: -0.03em;
+}
+.section-title .location-highlight { color: var(--orange); }
+.see-all {
+  font-size: 15px; font-weight: 700;
+  color: var(--orange);
+  display: flex; align-items: center; gap: 4px;
+  transition: gap 0.2s;
+  flex-shrink: 0;
+}
+.see-all:hover { gap: 8px; }
+
+/* ============================================
+   TOP EVENTS — Horizontal scroll (Fever-style numbered)
+   ============================================ */
+.top-events-scroll {
+  display: flex; gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.top-card {
+  position: relative;
+  flex-shrink: 0;
+  width: 230px;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+.top-card-image-wrap {
+  position: relative;
+  width: 100%; aspect-ratio: 3/4;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s ease;
+}
+.top-card:hover .top-card-image-wrap {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+}
+.top-card-image-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.top-card:hover .top-card-image-wrap img { transform: scale(1.06); }
+.top-card-number {
+  position: absolute;
+  bottom: 8px; left: 12px;
+  font-family: var(--font-display);
+  font-size: 72px; font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  letter-spacing: -0.06em;
+}
+.top-card-heart {
+  position: absolute; top: 12px; right: 12px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 2;
+}
+.top-card-heart:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+.top-card-heart.liked { background: var(--orange); }
+.top-card-heart svg { color: var(--white); }
+.top-card-gradient {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.top-card-title {
+  margin-top: 14px;
+  font-size: 15px; font-weight: 700;
+  color: var(--black);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   CATEGORY FILTER BAR
+   ============================================ */
+.category-bar {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.category-bar-inner {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0;
+  -webkit-overflow-scrolling: touch;
+}
+.cat-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid var(--gray-300);
+  background: var(--white);
+  font-size: 14px; font-weight: 600;
+  color: var(--gray-700);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.cat-chip:hover { border-color: var(--gray-400); background: var(--gray-100); color: var(--black); }
+.cat-chip.active {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+
+/* ============================================
+   MAGAZINE CARD GRID SECTIONS
+   ============================================ */
+.magazine-section { padding-top: 12px; padding-bottom: 12px; }
+
+.magazine-grid {
+  display: flex; gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.mag-card {
+  flex-shrink: 0;
+  width: 280px;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+.mag-card-image-wrap {
+  position: relative;
+  width: 100%; aspect-ratio: 4/5;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s ease;
+}
+.mag-card:hover .mag-card-image-wrap {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.14);
+}
+.mag-card-image-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.mag-card:hover .mag-card-image-wrap img { transform: scale(1.05); }
+
+.mag-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 45%, transparent 70%);
+}
+.mag-card-badge {
+  position: absolute; top: 14px; left: 14px;
+  padding: 5px 12px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+.mag-card-badge.free { background: rgba(42,157,143,0.9); color: #fff; }
+.mag-card-badge.paid { background: rgba(255,255,255,0.92); color: var(--black); }
+
+.mag-card-heart {
+  position: absolute; top: 14px; right: 14px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+.mag-card-heart:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+.mag-card-heart.liked { background: var(--orange); }
+.mag-card-heart svg { color: var(--white); width: 18px; height: 18px; }
+
+.mag-card-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 20px 18px;
+}
+.mag-card-cat {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 50px;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.mag-card-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 800;
+  color: var(--white);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mag-card-meta {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center;
+}
+.mag-card-meta span {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,0.8);
+}
+.mag-card-meta svg { width: 13px; height: 13px; }
+
+/* ============================================
+   SECTION DIVIDER
+   ============================================ */
+.section-divider {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+.section-divider hr {
+  border: none;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+  background: var(--black);
+  color: rgba(255,255,255,0.5);
+  padding: 56px 32px 32px;
+  margin-top: 40px;
+}
+.footer-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 48px;
+}
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 320px; margin-top: 16px; }
+.footer-links { display: flex; gap: 64px; }
+.footer-col h5 {
+  color: var(--white); font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 18px;
+}
+.footer-col a {
+  display: block; font-size: 14px; color: rgba(255,255,255,0.45);
+  margin-bottom: 12px; transition: color 0.2s;
+}
+.footer-col a:hover { color: var(--orange); }
+.footer-bottom {
+  max-width: var(--max-width);
+  margin: 40px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 13px; text-align: center;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .nav-inner { padding: 0 16px; }
+  .nav-search { max-width: 360px; }
+  .nav-submit span { display: none; }
+  .nav-submit { padding: 10px 14px; }
+  .hero { height: 340px; }
+  .hero-title { font-size: 44px; }
+  .hero-subtitle { font-size: 17px; }
+  .hero-content { padding: 0 16px; }
+  .section { padding: 32px 16px; }
+  .category-bar { padding: 0 16px; }
+  .section-title { font-size: 22px; }
+  .top-card { width: 190px; }
+  .top-card-number { font-size: 56px; }
+  .mag-card { width: 240px; }
+}
+@media (max-width: 600px) {
+  .nav-search .location-pill span { display: none; }
+  .hero { height: 280px; }
+  .hero-title { font-size: 36px; }
+  .hero-subtitle { font-size: 15px; }
+  .top-card { width: 170px; }
+  .mag-card { width: 220px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================================================
+     NAVIGATION BAR
+     ================================================ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <!-- Logo -->
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon" >
+        <img 
+        src="/whatsnext logo.png" 
+        alt="Alizz Online Madrasah Logo" 
+        width="150" heigh="150"
+        >
+      </div>
+    </a>
+
+    <!-- Search Bar -->
+    <div class="nav-search" id="navSearch">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div class="input-wrap">
+        <input type="text" id="searchInput" autocomplete="off">
+        <div class="search-placeholder" id="searchPlaceholder">
+          <span class="static-text">Search</span>
+          <span class="rotating-text" id="rotatingText">events in Music</span>
+        </div>
+      </div>
+      <div class="location-pill" title="Change location">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Oceanside</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <button class="search-btn" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+
+    <!-- Nav Actions -->
+    <div class="nav-actions">
+      <button class="icon-btn" title="Saved Events">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="nav-submit" title="Submit Event">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Submit Event</span>
+      </button>
+      <button class="icon-btn" title="Account">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================================================
+     HERO — Partial viewport, Fever-style
+     ================================================ -->
+<section class="hero">
+  <img class="hero-image" src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&q=80" alt="Festival crowd with colorful confetti and balloons">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">WhatsNext<span class="question-mark">?</span></h1>
+    <p class="hero-subtitle">Experience the next events in your city</p>
+  </div>
+</section>
+
+<!-- ================================================
+     TOP 5 NEXT EVENTS — Fever-style numbered cards
+     ================================================ -->
+<section class="section" id="topSection">
+  <div class="section-header animate-on-scroll">
+    <h2 class="section-title">Next Events in <span class="location-highlight">Oceanside</span></h2>
+    <a href="#" class="see-all">See all <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+  </div>
+  <div class="top-events-scroll animate-on-scroll" id="topEventsRow"></div>
+</section>
+
+<!-- ================================================
+     CATEGORY FILTER BAR
+     ================================================ -->
+<div class="category-bar animate-on-scroll">
+  <div class="category-bar-inner" id="categoryBar"></div>
+</div>
+
+<!-- ================================================
+     MAGAZINE SECTIONS — By Category
+     ================================================ -->
+<div id="magazineSections"></div>
+
+<!-- ================================================
+     FOOTER
+     ================================================ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo" style="margin-bottom: 0;">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="url(#logoGrad2)"/><path d="M12 13l4 14h1l3.5-10L24 27h1l4-14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="logoGrad2" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#F5A623"/><stop offset="1" stop-color="#E8961A"/></linearGradient></defs></svg>
+        </div>
+        <div class="nav-logo-text" style="color:#fff">Whats<span>Next</span></div>
+      </div>
+      <p>Hyperlocal event discovery for North San Diego County. Find what's happening in your community.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h5>Cities</h5>
+        <a href="#">Oceanside</a><a href="#">Carlsbad</a><a href="#">Vista</a><a href="#">Fallbrook</a><a href="#">Bonsall</a><a href="#">San Marcos</a><a href="#">Escondido</a>
+      </div>
+      <div class="footer-col">
+        <h5>Platform</h5>
+        <a href="#">Submit Event</a><a href="#">Register Business</a><a href="#">About Us</a><a href="#">Contact</a><a href="#">Privacy Policy</a>
+      </div>
+      <div class="footer-col">
+        <h5>Categories</h5>
+        <a href="#">Music</a><a href="#">Food & Drink</a><a href="#">Arts & Culture</a><a href="#">Outdoor</a><a href="#">Markets</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 WhatsNext. All rights reserved.</div>
+</footer>
+
+<!-- ================================================
+     DATA & SCRIPTS
+     ================================================ -->
+<script>
+// ---- DATA ----
+const categories = [
+  { id: "all", label: "All" },
+  { id: "music", label: "Music" },
+  { id: "food", label: "Food & Drink" },
+  { id: "arts", label: "Arts & Culture" },
+  { id: "family", label: "Family" },
+  { id: "outdoor", label: "Outdoor" },
+  { id: "sports", label: "Sports" },
+  { id: "nightlife", label: "Nightlife" },
+  { id: "community", label: "Community" },
+  { id: "markets", label: "Markets" },
+  { id: "wellness", label: "Wellness" },
+];
+
+const allEvents = [
+  // Music
+  { id:1, title:"Sunset Jazz on the Pier", cat:"music", city:"Oceanside", date:"Mar 8", time:"6:00 PM", img:"https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=600&q=80", price:"Free", venue:"Pier Amphitheatre" },
+  { id:2, title:"Acoustic Sessions Under Stars", cat:"music", city:"Fallbrook", date:"Mar 16", time:"7:00 PM", img:"https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&q=80", price:"Free", venue:"Pala Mesa Resort" },
+  { id:3, title:"Reggae by the Beach", cat:"music", city:"Carlsbad", date:"Mar 20", time:"4:00 PM", img:"https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&q=80", price:"$10", venue:"Carlsbad Beach" },
+  { id:4, title:"Open Mic Night at The Treehouse", cat:"music", city:"Vista", date:"Mar 22", time:"8:00 PM", img:"https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80", price:"Free", venue:"The Treehouse" },
+  { id:5, title:"Indie Rock Showcase", cat:"music", city:"Oceanside", date:"Mar 25", time:"9:00 PM", img:"https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80", price:"$15", venue:"The Brook Theater" },
+  // Food
+  { id:6, title:"Craft Beer & Taco Festival", cat:"food", city:"Vista", date:"Mar 10", time:"12:00 PM", img:"https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80", price:"$15", venue:"Brengle Terrace Park" },
+  { id:7, title:"Food Truck Fridays", cat:"food", city:"Carlsbad", date:"Mar 14", time:"5:00 PM", img:"https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=600&q=80", price:"Free Entry", venue:"Village Drive" },
+  { id:8, title:"Wine & Canvas Evening", cat:"food", city:"Fallbrook", date:"Mar 18", time:"6:30 PM", img:"https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&q=80", price:"$35", venue:"Fallbrook Winery" },
+  { id:9, title:"Oceanside Brunch Crawl", cat:"food", city:"Oceanside", date:"Mar 22", time:"10:00 AM", img:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80", price:"$25", venue:"Downtown Oceanside" },
+  { id:10, title:"Sushi Making Workshop", cat:"food", city:"Escondido", date:"Mar 27", time:"6:00 PM", img:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&q=80", price:"$45", venue:"Zen Kitchen" },
+  // Arts
+  { id:11, title:"Plein Air Painting Workshop", cat:"arts", city:"Fallbrook", date:"Mar 12", time:"9:00 AM", img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80", price:"$25", venue:"Art Center" },
+  { id:12, title:"Mural Walk & Street Art Tour", cat:"arts", city:"Oceanside", date:"Mar 15", time:"10:00 AM", img:"https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=600&q=80", price:"$10", venue:"Downtown" },
+  { id:13, title:"Pottery Night: Throw & Sip", cat:"arts", city:"Carlsbad", date:"Mar 19", time:"7:00 PM", img:"https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&q=80", price:"$40", venue:"Clay Studio" },
+  { id:14, title:"Photography Walk: Golden Hour", cat:"arts", city:"Oceanside", date:"Mar 23", time:"5:30 PM", img:"https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80", price:"Free", venue:"Harbor District" },
+  { id:15, title:"Comedy Improv Night", cat:"arts", city:"Vista", date:"Mar 28", time:"8:00 PM", img:"https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=600&q=80", price:"$12", venue:"Avo Playhouse" },
+  // Family
+  { id:16, title:"Family Fun Day at the Farm", cat:"family", city:"Bonsall", date:"Mar 14", time:"10:00 AM", img:"https://images.unsplash.com/photo-1596463989166-9cf267b0a474?w=600&q=80", price:"$10", venue:"Keys Creek Farm" },
+  { id:17, title:"Kids Science Fair", cat:"family", city:"San Marcos", date:"Mar 21", time:"9:00 AM", img:"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80", price:"Free", venue:"Discovery Park" },
+  { id:18, title:"Storytime & Crafts", cat:"family", city:"Oceanside", date:"Mar 24", time:"10:30 AM", img:"https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=600&q=80", price:"Free", venue:"City Library" },
+  { id:19, title:"Bubble Festival", cat:"family", city:"Carlsbad", date:"Mar 29", time:"11:00 AM", img:"https://images.unsplash.com/photo-1489710437720-ebb67ec84dd2?w=600&q=80", price:"$8", venue:"Poinsettia Park" },
+  { id:20, title:"Junior Chef Cook-Off", cat:"family", city:"Vista", date:"Mar 30", time:"2:00 PM", img:"https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&q=80", price:"$15", venue:"Culinary Center" },
+  // Outdoor
+  { id:21, title:"Trail Run: Guajome Challenge", cat:"outdoor", city:"Oceanside", date:"Mar 15", time:"7:30 AM", img:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&q=80", price:"$20", venue:"Guajome Park" },
+  { id:22, title:"Sunset Kayak Tour", cat:"outdoor", city:"Carlsbad", date:"Mar 17", time:"5:00 PM", img:"https://images.unsplash.com/photo-1472745942893-4b9f730c7668?w=600&q=80", price:"$35", venue:"Carlsbad Lagoon" },
+  { id:23, title:"Beach Bonfire Night", cat:"outdoor", city:"Oceanside", date:"Mar 20", time:"7:00 PM", img:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80", price:"Free", venue:"Oceanside Beach" },
+  { id:24, title:"Guided Wildflower Hike", cat:"outdoor", city:"Fallbrook", date:"Mar 26", time:"8:00 AM", img:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80", price:"$5", venue:"Santa Margarita Trail" },
+  { id:25, title:"Surf Lesson: Beginners", cat:"outdoor", city:"Oceanside", date:"Mar 28", time:"9:00 AM", img:"https://images.unsplash.com/photo-1502680390548-bdbac40e4a9a?w=600&q=80", price:"$30", venue:"Oceanside Pier" },
+  // Sports
+  { id:26, title:"Friday Night Lights: Basketball", cat:"sports", city:"San Marcos", date:"Mar 7", time:"7:00 PM", img:"https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80", price:"$8", venue:"SM High School" },
+  { id:27, title:"5K Fun Run for Charity", cat:"sports", city:"Vista", date:"Mar 16", time:"7:00 AM", img:"https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600&q=80", price:"$25", venue:"Brengle Terrace" },
+  // Nightlife
+  { id:28, title:"Neon Nights DJ Showcase", cat:"nightlife", city:"Carlsbad", date:"Mar 9", time:"9:00 PM", img:"https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=600&q=80", price:"$12", venue:"The Compass" },
+  { id:29, title:"Latin Dance Night", cat:"nightlife", city:"Oceanside", date:"Mar 14", time:"9:30 PM", img:"https://images.unsplash.com/photo-1545128485-c400e7702796?w=600&q=80", price:"$10", venue:"Salsa Lounge" },
+  // Community
+  { id:30, title:"Neighbourhood Beach Cleanup", cat:"community", city:"Oceanside", date:"Mar 11", time:"8:00 AM", img:"https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&q=80", price:"Free", venue:"Harbor" },
+  { id:31, title:"Town Hall: What's Next for Oceanside", cat:"community", city:"Oceanside", date:"Mar 18", time:"6:00 PM", img:"https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=600&q=80", price:"Free", venue:"Civic Center" },
+  // Markets
+  { id:32, title:"Sunrise Farmers Market", cat:"markets", city:"Vista", date:"Mar 8", time:"8:00 AM", img:"https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&q=80", price:"Free", venue:"Historic Downtown" },
+  { id:33, title:"Vintage & Artisan Market", cat:"markets", city:"Oceanside", date:"Mar 16", time:"9:00 AM", img:"https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80", price:"Free", venue:"Sunset Market" },
+  { id:34, title:"Coastal Craft Fair", cat:"markets", city:"Carlsbad", date:"Mar 23", time:"10:00 AM", img:"https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=600&q=80", price:"Free", venue:"State Street" },
+  // Wellness
+  { id:35, title:"Sound Bath & Meditation", cat:"wellness", city:"Escondido", date:"Mar 13", time:"6:30 PM", img:"https://images.unsplash.com/photo-1545389336-cf090694435e?w=600&q=80", price:"$18", venue:"Wellness Studio" },
+  { id:36, title:"Yoga in the Park", cat:"wellness", city:"Carlsbad", date:"Mar 9", time:"7:00 AM", img:"https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80", price:"Free", venue:"Poinsettia Park" },
+  { id:37, title:"Breathwork & Ice Bath", cat:"wellness", city:"Oceanside", date:"Mar 21", time:"6:00 AM", img:"https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80", price:"$22", venue:"OB Wellness" },
+];
+
+// SVG icons as strings
+const icons = {
+  calendar: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  clock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  pin: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  heart: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  heartFilled: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  arrow: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+};
+
+// ---- DYNAMIC SEARCH PLACEHOLDER ----
+const searchPhrases = [
+  "events in Music", "events in Nightlife", "events in Food & Drink",
+  "events in Arts & Culture", "events in Outdoor", "events in Wellness",
+  "events in Markets", "events in Community", "events in Sports",
+  "events in Family", "events in Restaurants", "events in Movies"
+];
+let phraseIdx = 0;
+const rotatingEl = document.getElementById('rotatingText');
+const placeholderEl = document.getElementById('searchPlaceholder');
+const searchInput = document.getElementById('searchInput');
+
+function rotatePlaceholder() {
+  // Fade out
+  rotatingEl.style.opacity = '0';
+  rotatingEl.style.transform = 'translateY(6px)';
+  setTimeout(() => {
+    phraseIdx = (phraseIdx + 1) % searchPhrases.length;
+    rotatingEl.textContent = searchPhrases[phraseIdx];
+    // Fade in
+    rotatingEl.style.opacity = '1';
+    rotatingEl.style.transform = 'translateY(0)';
+  }, 300);
+}
+rotatingEl.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+setInterval(rotatePlaceholder, 2800);
+
+searchInput.addEventListener('input', function() {
+  placeholderEl.style.display = this.value ? 'none' : 'flex';
+});
+searchInput.addEventListener('focus', function() {
+  if (!this.value) placeholderEl.style.display = 'flex';
+});
+searchInput.addEventListener('blur', function() {
+  if (!this.value) placeholderEl.style.display = 'flex';
+});
+
+// ---- RENDER TOP 5 EVENTS ----
+function renderTop5() {
+  const top5 = allEvents.slice(0, 5);
+  const container = document.getElementById('topEventsRow');
+  container.innerHTML = top5.map((ev, i) => `
+    <div class="top-card" style="animation: slideInRight 0.5s ease ${i * 0.08}s both">
+      <div class="top-card-image-wrap">
+        <img src="${ev.img}" alt="${ev.title}" loading="lazy">
+        <div class="top-card-gradient"></div>
+        <div class="top-card-number">${i + 1}</div>
+        <button class="top-card-heart" onclick="toggleHeart(this, event)" title="Save event">
+          ${icons.heart}
+        </button>
+      </div>
+      <div class="top-card-title">${ev.title}</div>
+    </div>
+  `).join('');
+}
+
+// ---- RENDER CATEGORY BAR ----
+let activeCategory = 'all';
+function renderCategoryBar() {
+  const container = document.getElementById('categoryBar');
+  container.innerHTML = categories.map(c => `
+    <button class="cat-chip ${c.id === activeCategory ? 'active' : ''}" data-cat="${c.id}" onclick="filterCategory('${c.id}')">
+      ${c.label}
+    </button>
+  `).join('');
+}
+
+function filterCategory(catId) {
+  activeCategory = catId;
+  renderCategoryBar();
+  renderMagazineSections();
+}
+
+// ---- RENDER MAGAZINE SECTIONS ----
+function renderMagazineSections() {
+  const container = document.getElementById('magazineSections');
+  const catsToShow = activeCategory === 'all'
+    ? categories.filter(c => c.id !== 'all')
+    : categories.filter(c => c.id === activeCategory);
+
+  let html = '';
+  catsToShow.forEach((cat, sectionIdx) => {
+    const catEvents = allEvents.filter(e => e.cat === cat.id);
+    if (catEvents.length === 0) return;
+
+    html += `
+      <div class="section-divider"><hr></div>
+      <section class="section magazine-section animate-on-scroll" style="transition-delay: ${sectionIdx * 0.05}s">
+        <div class="section-header">
+          <h2 class="section-title">${cat.label} in <span class="location-highlight">Oceanside</span></h2>
+          <a href="#" class="see-all">See all ${icons.arrow}</a>
+        </div>
+        <div class="magazine-grid">
+          ${catEvents.map((ev, i) => renderMagCard(ev, i)).join('')}
+        </div>
+      </section>
+    `;
+  });
+
+  container.innerHTML = html;
+  observeAnimations();
+}
+
+function renderMagCard(ev, i) {
+  const isFree = ev.price === 'Free' || ev.price === 'Free Entry';
+  return `
+    <div class="mag-card" style="animation: slideInRight 0.5s ease ${i * 0.07}s both">
+      <div class="mag-card-image-wrap">
+        <img src="${ev.img}" alt="${ev.title}" loading="lazy">
+        <div class="mag-card-overlay"></div>
+        <div class="mag-card-badge ${isFree ? 'free' : 'paid'}">${ev.price}</div>
+        <button class="mag-card-heart" onclick="toggleHeart(this, event)" title="Save event">
+          ${icons.heart}
+        </button>
+        <div class="mag-card-content">
+          <div class="mag-card-cat">${categories.find(c=>c.id===ev.cat)?.label || ''}</div>
+          <div class="mag-card-title">${ev.title}</div>
+          <div class="mag-card-meta">
+            <span>${icons.calendar} ${ev.date}</span>
+            <span>${icons.clock} ${ev.time}</span>
+            <span>${icons.pin} ${ev.city}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- HEART TOGGLE ----
+function toggleHeart(btn, e) {
+  e.stopPropagation();
+  btn.classList.toggle('liked');
+  if (btn.classList.contains('liked')) {
+    btn.innerHTML = icons.heartFilled;
+    btn.style.transform = 'scale(1.2)';
+    setTimeout(() => btn.style.transform = '', 200);
+  } else {
+    btn.innerHTML = icons.heart;
+  }
+}
+
+// ---- SCROLL ANIMATIONS ----
+function observeAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
+}
+
+// ---- INIT ----
+renderTop5();
+renderCategoryBar();
+renderMagazineSections();
+observeAnimations();
+</script>
+</body>
+</html>
